@@ -1,0 +1,68 @@
+# Operating {{PROJECT_NAME}} (human guide)
+
+You don't write code. You direct AI agents through a disciplined loop and judge
+the results. This is that loop and your job at each step.
+
+```
+discuss -> plan -> review + correct -> execute (worktree) -> review (other CLI) -> land -> verify
+  you talk   AI drafts   you approve       AI builds, isolated     cross-check          merge   you UAT
+```
+
+One trip through the loop = one phase = one clean commit. Keep loops small.
+
+## 1. Discuss
+`gsd-discuss-phase` (first time: `gsd-new-project`). Talk through what you want
+next, in plain language. Your job: be clear about the goal and the constraints.
+
+## 2. Plan
+`gsd-plan-phase`. The agent writes a step-by-step plan. Your job: wait for it.
+
+## 3. Review + correct the plan
+`gsd-review --phase N`
+**Don't approve a plan you don't understand — ask until you do.** This is the cheapest
+place to catch a mistake; fixing it here costs minutes, fixing it after the build
+costs hours.
+
+## 4. Execute in a worktree
+`make worktree.new SLUG=<slug>`, then `gsd-execute-phase`. The agent builds in an
+isolated copy of the repo (a "git worktree") so your main copy stays clean and
+parallel work can't collide. It must keep `make verify` green as it goes.
+
+## 5. Code review by the *other* CLI
+Have the other agent review the diff: Claude built it → **Codex reviews**; Codex
+built it → **Claude reviews**. A second model catches what the author missed and
+won't rubber-stamp its own work. Feed real findings back as fixes; re-run
+`make verify`.
+
+## 6. Land the worktree
+Once review passes: `make worktree.land SLUG=<slug> MSG="<commit message>"`. It
+re-runs `make verify` inside the worktree, lands one clean squash commit, and
+deletes the worktree + branch. It refuses if anything is dirty or unverified —
+that refusal is the point. Never hand-merge work that skipped review + verify.
+
+## 7. Verify the work
+`gsd-verify-work`. Walk through the feature as a real user would and confirm it
+does what you asked. Final gate. If it's wrong, go back to discuss/plan — don't
+patch blindly.
+
+## Run loops in parallel
+The loop is single-threaded by default, but the worktree in step 4 means
+independent work doesn't have to wait in line. Look for tasks that don't touch the
+same code or depend on each other — a new feature here, a bug fix there, a docs
+pass — and push each into its own loop at once. Each runs in its own worktree, so
+they can't collide, and you review/land them as they finish.
+
+Your job shifts from "wait for one thing" to **keeping the pipeline full**: while
+one phase is executing, you're discussing or reviewing the plan for the next. Be
+honest about dependencies though — two loops editing the same module will fight at
+land time. When unsure, ask the agent whether two tasks are independent before
+starting both.
+
+## Rules of thumb
+- Hunt for parallelizable work and keep several independent loops in flight.
+- Never approve a plan or a result you don't understand. Ask.
+- `make verify` and the other-CLI review are your safety net — don't skip them to
+  go faster. Skipping is how slop ships.
+- Small loops beat giant ones. One phase at a time.
+- Found a good idea or a shortcut you took? File it (`docs/ideas/` /
+  `docs/tech_debt/`) so it isn't lost.

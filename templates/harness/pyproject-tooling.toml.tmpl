@@ -1,0 +1,32 @@
+# Merge into the project's pyproject.toml (created by `uv init`).
+# Tooling config for the harness: linter, formatter, type checker, import boundaries.
+# Replace {{PKG}} with the project's import package name (from `uv init`).
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+# Opt in once the project is ready (noisy on brownfield / early greenfield):
+# disallow_any_explicit = true
+
+[tool.importlinter]
+root_package = "{{PKG}}"
+include_external_packages = true
+
+# Starter contract: valid from day one (app must never import test code), and a
+# real guardrail. As the module structure grows, add `layers` / `independence`
+# contracts to enforce boundaries (see harness/README.md).
+[[tool.importlinter.contracts]]
+name = "App does not import tests"
+type = "forbidden"
+source_modules = ["{{PKG}}"]
+forbidden_modules = ["tests"]
+
+[dependency-groups]
+dev = ["pytest", "ruff", "mypy", "import-linter"]

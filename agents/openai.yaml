@@ -1,0 +1,4 @@
+interface:
+  display_name: "Setup Agentic Repo"
+  short_description: "Turn an idea or existing repo into agent-ready infra (AGENTS.md, docs, harness), then hand off to gsd."
+  default_prompt: "Use $setup-agentic-repo to set up this project for AI coding agents: runtime prompt + skills, AGENTS.md and docs context, a test/lint/type/import harness, then hand the spec to gsd."

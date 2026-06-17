@@ -1,0 +1,103 @@
+# {{PROJECT_NAME}} — AGENTS.md
+
+Standing brief for every AI agent working in this repo. Read it first. All
+agents (Claude Code, Codex, Cursor, ...) read this one file; `CLAUDE.md` is a
+symlink to it.
+
+Keep this file short. It is loaded on every interaction. Project detail lives in
+`docs/` and is read on demand.
+
+## What we're building
+
+{{ONE_LINE_VISION}}
+
+Full intent: gsd `.planning/PROJECT.md`. System map: `docs/architecture/overview.md`.
+
+## Stack
+
+{{STACK_SUMMARY}}
+
+Why this stack and every other locked choice: `docs/architecture/decision_log.md`
+(cite decisions by id, e.g. L01).
+
+## How to verify (the gate)
+
+Nothing is "done", "fixed", or "working" until checks pass. The one command:
+
+```
+{{VERIFY_COMMAND}}
+```
+
+State the command you ran and the result line in your reply. Predicting that
+tests pass is not the same as running them. This is the rule that lets a
+non-technical owner trust work they can't read.
+
+## Stop and ask first
+
+Surface to the human and wait for a decision when:
+
+- An architectural claim isn't in the decision log.
+- A locked decision (Lxx) looks wrong — propose superseding it, don't just
+  ignore it.
+- A library/API behavior is unverified after a real check.
+- Evidence conflicts (doc vs code vs prior decision vs what the human said).
+- A destructive operation is involved (`git reset --hard`, force push, `rm -rf`,
+  dropping data, deleting branches, overwriting uncommitted work).
+- A choice trades stability for speed — pick stability and surface it.
+
+Ask format: the trigger, 2-3 options, your recommendation, then wait.
+
+## Decisions
+
+- `docs/architecture/decision_log.md` is the single source of locked decisions.
+- New non-trivial choice: give 2-3 options + tradeoffs + a recommendation, let
+  the human pick, then log it as a new `Lxx`. Don't re-litigate logged decisions.
+- Ground claims in evidence: a cited decision, a file you read, a command you
+  ran, docs you fetched, or the human's confirmation. Flag guesses as
+  `ASSUMPTION:` and surface them before acting.
+
+## Keep it simple, keep it small
+
+- Simplest solution that actually works. Three similar lines beat a premature
+  abstraction. Don't add speculative features or flexibility nobody asked for.
+- Default to surgical edits. Don't refactor or rename adjacent code unless asked;
+  note the tangent and raise it after.
+- One concern per commit. Commits are semantic checkpoints — one logical unit of
+  work, not micro-commits. Mixed-concern diffs hide regressions.
+
+## Finishing work properly
+
+New backend behavior ships with its tests, a log line on the important decision
+branches, and a rollback path on anything touching the database or an external
+service — in the same change, not as a follow-up. Don't leave `TODO`, `pass`, or
+unreachable branches as if they were finished.
+
+## Capturing ideas and debt (don't lose them)
+
+Non-blocking work survives in files, not just in a reply. One file per item,
+`YYYY-MM-DD-short-slug.md`, from `docs/<dir>/TEMPLATE.md`; add a row to that
+dir's `INDEX.md` in the same commit.
+
+- Good idea that isn't for now → `docs/ideas/`.
+- Known-bad code, missing test, risky shortcut, deferred fix → `docs/tech_debt/active/`.
+  Tag `Severity:` — **blocker** (corruption / silent partial success /
+  source-of-truth / paid-API drain) | **must** (correctness/maintainability, or
+  deferred with a named trigger) | **nice**.
+- Blocker → fix it now or stop and ask; never just file it and move on.
+- On fixing debt: flip `Status: resolved`, add the commit sha, `git mv` into
+  `docs/tech_debt/resolved/`, move the INDEX row — in the same commit as the fix.
+- Before your final reply, state whether you filed any item and its path.
+
+## Tools and skills
+
+- Reuse the project's command surface (`Makefile` / scripts) instead of ad-hoc
+  shell. Check for an existing command before inventing one.
+- Planning and execution: gsd skill suite (`gsd-plan-phase`, `gsd-execute-phase`, ...).
+- User-facing text (explanations, reviews): caveman — terse, no filler.
+- Commit messages: Conventional Commits, normal prose — NOT caveman.
+- Writing code: ponytail — simplest thing that works, no speculative abstractions.
+{{EXTRA_SKILLS}}
+
+## Code style
+
+{{CODE_STYLE}}

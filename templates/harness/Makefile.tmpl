@@ -1,0 +1,60 @@
+.PHONY: verify test lint typecheck lint-imports fmt install worktree.bootstrap worktree.new worktree.land
+
+install:
+	uv sync
+
+verify: lint typecheck lint-imports test
+
+test:
+	uv run pytest
+
+lint:
+	uv run ruff check .
+
+typecheck:
+	uv run mypy .
+
+lint-imports:
+	uv run lint-imports
+
+fmt:
+	uv run ruff format .
+
+# Frontend (uncomment once a web/ app exists):
+# verify: lint typecheck test fe.verify
+# fe.verify:
+# 	cd web && npm run lint && npm run typecheck && npm test
+
+# --- Worktrees: isolated, parallel agent work (see harness/README.md + worktree-workflow) ---
+
+worktree.bootstrap: ## once per clone: per-worktree config
+	git config extensions.worktreeConfig true
+
+worktree.new: ## make worktree.new SLUG=<slug> : branch agent/<slug> off current HEAD into .claude/worktrees/<slug>
+	@test -n "$(SLUG)" || { echo "SLUG= required"; exit 1; }
+	@echo "$(SLUG)" | grep -qE '^[a-zA-Z0-9_-]+$$' || { echo "Bad SLUG (alnum/_/- only)"; exit 1; }
+	@BASE=$$(git symbolic-ref --short HEAD); \
+	git worktree add .claude/worktrees/$(SLUG) -b agent/$(SLUG) $$BASE; \
+	git -C .claude/worktrees/$(SLUG) config --worktree worktree.base $$BASE; \
+	echo "worktree .claude/worktrees/$(SLUG) on agent/$(SLUG) (base $$BASE)"
+
+worktree.land: ## make worktree.land SLUG=<slug> MSG="<commit>" : verify, squash-merge, clean up
+	@test -n "$(SLUG)" || { echo "SLUG= required"; exit 1; }
+	@test -n "$(MSG)" || { echo 'MSG= required'; exit 1; }
+	@WT=$$(git rev-parse --show-toplevel)/.claude/worktrees/$(SLUG); \
+	test -d "$$WT" || { echo "No worktree at $$WT"; exit 1; }; \
+	BASE=$$(git -C $$WT config worktree.base); \
+	test -n "$$BASE" || { echo "worktree.base not set; run worktree.bootstrap then recreate"; exit 1; }; \
+	git -C $$WT diff --quiet && git -C $$WT diff --cached --quiet || { echo "Dirty worktree; commit/reset first"; exit 1; }; \
+	test "$$(git symbolic-ref --short HEAD)" = "$$BASE" || { echo "Switch main checkout to $$BASE first"; exit 1; }; \
+	LOCK=$$(git rev-parse --git-dir)/worktree-land.lock; \
+	until mkdir "$$LOCK" 2>/dev/null; do echo "another land in progress on $$BASE; waiting..."; sleep 1; done; \
+	trap 'rmdir "$$LOCK" 2>/dev/null' EXIT; \
+	git diff --quiet && git diff --cached --quiet || { echo "Dirty $$BASE; commit/reset first"; exit 1; }; \
+	: "reset --hard HEAD is safe: base verified clean just above, under the lock, so it only discards the failed squash (which leaves no MERGE_HEAD to --abort)"; \
+	git merge --squash agent/$(SLUG) || { git reset --hard HEAD; echo "CONFLICT - resolve in worktree, retry"; exit 1; }; \
+	$(MAKE) verify || { git reset --hard HEAD; echo "verify failed on merged result; not landing"; exit 1; }; \
+	git commit -m "$(MSG)"; \
+	git worktree remove --force $$WT; \
+	git branch -D agent/$(SLUG); \
+	echo "landed agent/$(SLUG) on $$BASE"
