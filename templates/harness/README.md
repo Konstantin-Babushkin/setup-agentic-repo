@@ -5,15 +5,12 @@ surface, automatic checks, a green smoke test. Scaffold the **foundation only**
 now — commands and configs. CI and a docker stack come later. Import boundaries
 start now with one trivially-valid contract and grow as modules appear.
 
-## Default stack (Python + optional React/TS)
+## Python reference shape (only if Python is the chosen stack)
 
-**Fastest path — the bootstrap script.** `scripts/bootstrap_agentic_repo.py
---mode greenfield` writes a runnable `pyproject.toml` (with the package, ruff,
-mypy, import-linter contract), the `Makefile`, `.pre-commit-config.yaml`, the
-`{pkg}/` package, and a smoke test, then runs `uv sync`. After it finishes,
-`git init` and `uv run pre-commit install`. `make verify` is green from here.
-
-**Manual path** (or to layer onto an existing project):
+These configs are a reference, not a default. Use them when the founder landed on
+Python (see SKILL.md "Choosing the stack"); for Node/TS build the parallel shape,
+and for anything else see "A different stack?" below. There is no bootstrap script
+— wire it by hand so every piece is real and matches the stack.
 
 1. `uv init` to create `pyproject.toml`, then merge `pyproject-tooling.toml.tmpl`
    into it (replace `{{PKG}}` with the import package name) and `uv sync`.
@@ -28,7 +25,39 @@ mypy, import-linter contract), the `Makefile`, `.pre-commit-config.yaml`, the
 
 Platform notes: the `CLAUDE.md` symlink and `make worktree.*` need a Unix-like
 shell (Linux/macOS/WSL). On native Windows, keep `CLAUDE.md` as a copy of
-`AGENTS.md` (the script falls back to this automatically).
+`AGENTS.md` instead of a symlink.
+
+## How strict? (the default stance)
+
+Strict enough to **fail the build** — a warning nobody blocks on isn't a guardrail.
+
+- **Strictness fails, it doesn't warn.** Every check is exit-nonzero inside
+  `make verify`. No "warning" tier that accumulates and gets ignored.
+- **Greenfield: max strict from day one.** It's cheapest when there's almost no
+  code to fix. The Python config in `pyproject-tooling.toml.tmpl` is the default:
+  a strong ruff set (tied to the CODING_VALUES rules — naming, simplify, dead
+  code, exception + logging hygiene), `mypy --strict` + `warn_unreachable` +
+  `disallow_any_explicit` (enforces the no-`dict[str, Any]` rule), and pytest with
+  `--strict-markers --strict-config`, `xfail_strict`, `filterwarnings=["error"]`.
+- **Brownfield: same strict config, baseline the violations.** Don't loosen the
+  rule to go green. Freeze the current violation count (ratchet: forbid *new*
+  violations, burn the backlog down as `docs/tech_debt/` items). For mypy on a
+  legacy tree, comment out `disallow_any_explicit` and re-enable once the `Any`s
+  are typed — that's a ratchet, not a permanent exemption.
+- **No blanket suppressions.** A bare `# noqa` / `# type: ignore` fails (ruff
+  RUF100 + mypy `ignore-without-code`) — suppress one rule by code, ideally with a
+  reason. A silent blanket ignore is how strict configs rot into decoration.
+- **Format is not lint.** The formatter (`ruff format` / Biome) auto-fixes style
+  silently and never blocks; the linter blocks on correctness. Keeps style out of
+  review so the gate flags real problems, not whitespace.
+
+Frontend equivalent: `tsconfig.json` `"strict": true` plus
+`noUncheckedIndexedAccess`, `noImplicitOverride`, `exactOptionalPropertyTypes`;
+Biome's recommended ruleset on, errors fail. Same five principles.
+
+What NOT to enable: pydocstyle (`D`) — docstrings are banned by house style;
+`ANN` — `mypy --strict` already requires annotations; ruff `ALL` — it churns
+across versions and turns review into bikeshedding.
 
 ### Import boundaries (import-linter)
 

@@ -12,6 +12,7 @@ Keep this file short. It is loaded on every interaction. Project detail lives in
 {{ONE_LINE_VISION}}
 
 Full intent: gsd `.planning/PROJECT.md`. System map: `docs/architecture/overview.md`.
+Global requirements: `docs/requirements/`. How the human drives this: `docs/HOW_TO_DEVELOP.md`.
 
 ## Stack
 
@@ -96,8 +97,14 @@ dir's `INDEX.md` in the same commit.
 - User-facing text (explanations, reviews): caveman — terse, no filler.
 - Commit messages: Conventional Commits, normal prose — NOT caveman.
 - Writing code: ponytail — simplest thing that works, no speculative abstractions.
+- Project-specific skills live in `.ai_skills/` (see its `README.md`). When a
+  project workflow repeats, add a skill there (use `skill-creator`) instead of
+  re-deriving it each session.
 {{EXTRA_SKILLS}}
 
 ## Code style
+
+Full coding standard: `docs/CODING_VALUES.md` — read it before writing code.
+The essentials:
 
 {{CODE_STYLE}}

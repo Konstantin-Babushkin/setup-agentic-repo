@@ -1,0 +1,53 @@
+# Project skills
+
+Skills specific to **{{PROJECT_NAME}}** live here — repeatable workflows unique to
+this codebase, not the general-purpose skills installed at the user level (gsd,
+caveman, ponytail).
+
+This directory starts empty on purpose. Don't pre-build skills you might need;
+add one when a real, repeating need shows up.
+
+## When to add a skill
+
+- A multi-step task done the same way two or three times (release steps, a data
+  import, a deploy dance).
+- A project convention an agent keeps getting wrong — encode it once.
+- A domain workflow with rules an agent can't infer from the code alone.
+
+If it happens once, it's a note in `docs/`. If it repeats, it's a skill.
+
+## How to add one
+
+Easiest: ask the agent to use the `skill-creator` skill — it drafts, tests, and
+tunes the trigger for you.
+
+By hand: make `<skill-name>/SKILL.md` with YAML frontmatter and steps:
+
+```
+---
+name: my-workflow
+description: >-
+  What it does AND when to use it. This is the trigger — be specific about the
+  phrases and situations that should fire it, or the agent won't reach for it.
+---
+
+# My Workflow
+
+Imperative steps the agent follows...
+```
+
+Keep `SKILL.md` short; put long reference material in a sibling file the skill
+points to, loaded only when needed.
+
+## Cross-CLI
+
+This directory is tool-neutral on purpose (same idea as `AGENTS.md`) — one source
+of truth every agent can use, not tied to one CLI. Agents read the relevant
+`SKILL.md` here as plain instructions. A CLI with native skill auto-loading can
+point its own path at this dir so triggering works automatically, e.g.:
+
+```
+ln -s ../.ai_skills .claude/skills      # Claude Code
+```
+
+Same source files either way; the symlink just opts a CLI into auto-discovery.

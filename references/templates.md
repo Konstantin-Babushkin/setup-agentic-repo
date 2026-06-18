@@ -2,8 +2,13 @@
 
 Seed these from gsd's `.planning/PROJECT.md` and the codebase, then write into the
 target repo. Starting shapes, not blank forms. No answer yet → write `OPEN:` and
-the question, not a guess. Requirements + roadmap are gsd's job (`.planning/`) —
-not here.
+the question, not a guess.
+
+Requirements split: gsd owns per-phase discovery and the roadmap in `.planning/`.
+`docs/requirements/` holds the *durable global* requirements that outlive a phase —
+functional, NFR, errors, security. At setup it's just a `README.md` naming what
+goes there; it fills as stable requirements emerge, it is not fabricated up front.
+`docs/guides/` starts empty too — add a how-to when there's a real one to write.
 
 ---
 
@@ -18,16 +23,67 @@ One-page map of the system. Grows as the project does.
 <one paragraph from PROJECT.md / the code>
 
 ## Stack
-- Backend: <e.g. FastAPI + SQLModel>
-- Data: <e.g. Postgres>
-- Frontend: <e.g. React + TypeScript>
+<the chosen stack, one line per layer that exists — backend / frontend / mobile /
+data / AI / infra. A repo may have only one. e.g. "Mobile: React Native + TS">
 See decision_log.md for why.
 
 ## Main pieces
-<list the obvious top-level parts once known; start with "TBD as we build">
+<the top-level subsystems once known; start with "TBD as we build">
 
 ## Source of truth
-<where the real data lives for each kind of thing — fill in as it emerges>
+<where the real data/state lives for each kind of thing — fill in as it emerges>
+```
+
+---
+
+## docs/architecture/<subsystem>/
+
+A subsystem is whatever the repo is built from — a frontend feature area, a mobile
+module, an API service, a data pipeline, a CLI tool. Start as a single
+`<subsystem>.md`; promote to a directory when one file stops holding it. Don't
+create these up front — add a subsystem's docs when the subsystem exists.
+
+```
+architecture/<subsystem>/
+├── strategy.md              what it owns and why; boundaries; key decisions (cite Lxx)
+├── tactics.md               patterns, data/control flow, contracts with other subsystems
+├── implementation.md        modules, entry points, where things live
+├── errors_and_logging.md    failure handling + observability for this subsystem
+└── tests.md                 what's covered, at which tier, and how to run it
+```
+
+Each file, starting shape (write `OPEN:` where unknown, not a guess):
+
+```markdown
+# <subsystem> — strategy
+## Responsibility
+<the one job this subsystem owns>
+## Boundaries
+<what it does NOT do; who it talks to and how>
+## Key decisions
+<cite Lxx from decision_log.md>
+
+# <subsystem> — tactics
+## Shape
+<main patterns; data + control flow>
+## Contracts
+<typed interfaces / events / views in and out — how other subsystems reach it>
+
+# <subsystem> — implementation
+## Layout
+<modules / folders / entry points; where each concern lives>
+
+# <subsystem> — errors & logging
+## Failure handling
+<critical vs background paths per CODING_VALUES; what fails loud, what retries>
+## Logging
+<key events + fields logged; what's redacted>
+
+# <subsystem> — tests
+## Coverage
+<what's tested and at which tier (unit / integration / e2e); critical paths>
+## Run
+<the command — reuse the project's surface>
 ```
 
 ---

@@ -32,12 +32,9 @@ agent-ready", or just describe the idea.
 
 - `SKILL.md` — the skill spec + flow.
 - `references/` — context-engineering primer, CLI setup, doc templates, worktree workflow.
-- `templates/` — `AGENTS.md`, `OPERATING.md`, system-prompt override, and the harness.
-- `scripts/bootstrap_agentic_repo.py` — scaffolds infra (`--dry-run`, `--self-check`, never overwrites).
-- `scripts/test_bootstrap.sh` — regression test (self-check + greenfield `make verify`).
+- `templates/` — `AGENTS.md`, `CODING_VALUES.md`, `HOW_TO_DEVELOP.md`, project-skills
+  README, system-prompt override, and the harness.
 
-## Test
-
-```
-scripts/test_bootstrap.sh
-```
+The infra is wired by hand from the templates, adapted to the chosen stack — there
+is no bootstrap script. Greenfield picks the stack via a short product interview
+(SKILL.md "Choosing the stack"); brownfield detects it.

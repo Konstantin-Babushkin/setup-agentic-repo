@@ -7,13 +7,53 @@ target-version = "py312"
 line-length = 100
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B"]
+# High-signal, low-false-positive set tied to CODING_VALUES (naming, simplify,
+# dead code, exception + logging hygiene, import boundaries). NOT "ALL" — that
+# churns across ruff versions and bikesheds. NOT D/DOC — docstrings are banned by
+# house style. NOT ANN — mypy strict already enforces annotations.
+select = [
+  "E", "F", "W",   # core: pycodestyle + pyflakes
+  "I",             # import sorting
+  "N",             # naming (matches CODING_VALUES naming rules)
+  "UP",            # pyupgrade: use modern syntax
+  "B",             # bugbear: real bugs, not style
+  "SIM",           # simplify: anti-slop
+  "C4",            # better comprehensions
+  "PTH",           # use pathlib over os.path
+  "TID",           # tidy/banned imports (boundary hygiene)
+  "ARG",           # unused arguments (dead params)
+  "ERA",           # commented-out code (dead code = fake-done smell)
+  "TRY",           # exception antipatterns (matches failure-handling values)
+  "LOG", "G",      # logging correctness (matches logging values)
+  "PT",            # pytest style
+  "RUF",           # ruff-specific, incl. RUF100 = unused-noqa fails
+]
+# Blanket `# noqa` (no rule code) is itself an error — suppress one rule, with a code.
+external = []
 
 [tool.mypy]
 python_version = "3.12"
 strict = true
-# Opt in once the project is ready (noisy on brownfield / early greenfield):
-# disallow_any_explicit = true
+warn_unreachable = true
+disallow_any_explicit = true          # enforces the no-`dict[str, Any]` rule; brownfield: comment out, ratchet in
+# ignore-without-code: a bare `# type: ignore` fails — must be `# type: ignore[code]`.
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool", "possibly-undefined"]
+
+# Libraries without type stubs: scope the exception per-module, never a global
+# ignore_missing_imports that blinds the whole project.
+# [[tool.mypy.overrides]]
+# module = ["some_untyped_lib.*"]
+# ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --strict-config"
+xfail_strict = true                   # an xpass fails — no silently-passing xfail
+filterwarnings = ["error"]            # warnings (e.g. deprecations) fail; relax one at a time, never blanket
+
+[tool.coverage.run]
+branch = true
+# No fail_under at init — a floor on ~no code just nags. Add one (e.g. 80) once
+# there's enough code for it to mean something; then it gates in `make verify`.
 
 [tool.importlinter]
 root_package = "{{PKG}}"
@@ -29,4 +69,4 @@ source_modules = ["{{PKG}}"]
 forbidden_modules = ["tests"]
 
 [dependency-groups]
-dev = ["pytest", "ruff", "mypy", "import-linter"]
+dev = ["pytest", "pytest-cov", "ruff", "mypy", "import-linter"]

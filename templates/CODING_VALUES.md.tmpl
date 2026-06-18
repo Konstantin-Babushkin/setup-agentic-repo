@@ -1,0 +1,201 @@
+# {{PROJECT_NAME}} — Coding Values
+
+What code this project welcomes and rejects. Agents read this before writing;
+reviewers judge against it. `AGENTS.md` carries the short version loaded every
+turn — this is the full reference, read on demand.
+
+Defaults below match the project's anti-slop stance. The owner can override any —
+when they do, log it as a decision (`Lxx` in `docs/architecture/decision_log.md`)
+and update this file. An agent that disagrees with a value raises it; it does not
+quietly ignore it. Fill the `<...>` slots from the real stack + domain; delete
+sections that don't apply yet, add project-specific ones as they emerge.
+
+## Vision
+
+Code reads like the architecture says it works. Open a file → see its
+responsibility, its data, its failure path. No hidden state, no lifecycle spread
+across the codebase, no clever indirection. Stable > fast.
+
+## Stack
+
+Filled from the chosen stack; the *why* per choice lives in `decision_log.md`
+(cite `Lxx`). Keep this list short — it's a pointer, not the rationale.
+
+- **Backend:** <e.g. FastAPI + SQLModel + Postgres>. Why → `L01`.
+- **Frontend:** <e.g. React + TypeScript, or "none — API only">. Why → `Lxx`.
+- **Other:** <queue / cache / AI / payments as they're chosen>.
+
+## Code values
+
+- Explicit types at every boundary (request/response, external calls, stored
+  shapes). No implicit `Any` / `dict[str, Any]` / untyped escape hatch.
+- Self-documenting code. Names carry meaning. Comment only where the *why* isn't
+  obvious (a hidden constraint, a bug workaround) — never to restate the code.
+- One operation per routine, one concern per class, one concern per file. A file
+  that grows to mix concerns = a boundary problem → surface it, don't bury it.
+- Information hiding: each module hides one design secret — a likely-change area,
+  an external format, a complexity source. Ask "what does this hide?", not "what's
+  convenient to expose?". Vendor/external types stop at their client boundary.
+- Simplest thing that works. Three similar lines beat a premature abstraction. No
+  speculative features, no flexibility nobody asked for.
+- Build exactly to the spec — every acceptance criterion met, nothing extra. Scope
+  changes go back to the human, not into the diff.
+- Limits/caps live in code (env var + check), not just infra.
+
+## Coupling
+
+Goal: simpler and more maintainable over time. Hidden cross-module coupling = a
+silent bug factory.
+
+- Each module/app owns its data — single writer. No second writer to the same
+  store.
+- Cross-module reads via a typed contract: an event, a read-only view, or the
+  owner's typed client. Never reach into another module's internals.
+- Shared code = error classes, base models, cross-cutting enums, transport/auth
+  helpers. NOT domain logic.
+- No singletons, no mutable globals. Dependencies injected at startup (framework
+  DI / task context); tests inject fakes.
+
+Reason: a change in one module must not silently break its readers. Typed contract
+at every cross-module edge.
+
+## File + function boundaries
+
+No fixed line counts — they invite gaming. Surface a boundary problem to the human
+when:
+
+- A function can't be named in one sentence → mixed responsibilities.
+- A file mixes concerns (e.g. transport + persistence + business rule together).
+- A change needs editing 3+ unrelated places → coupling problem.
+- A param list passes ~5 raw args → group into a typed object.
+- Nesting passes ~3 deep → extract guard clauses / early returns.
+- A function both decides and acts → split "decide" from "do".
+
+## Validation + assertions
+
+Types are the primary contract. Validate at the boundary, then trust the types
+inside — no repeated re-validation.
+
+- Inbound boundary: typed request models reject malformed input automatically.
+- Storage: schema constraints (NOT NULL, FK, CHECK) enforce shape.
+- External responses: parsed into your own types at the client edge.
+
+Assertions + early returns for what types can't express: cross-system invariants
+("row must be state X before Y"), guard clauses that fail fast on disallowed
+combinations, dev-time impossible-bug detection.
+
+Naming: positive boolean predicates (`is_paid`, `has_stock`); negated forms
+(`not_unpaid`) banned.
+
+## Naming
+
+- English throughout: identifiers, files, comments, commits, PR titles.
+- Domain-language terms (local language, transliterations) only in user-facing
+  strings → a translations layer. Map external/legacy names to English at the
+  boundary, not in the core.
+
+## State management
+
+State = what survives a crash and decides the next action. Treat it accordingly.
+
+- One single source of truth (typically the primary DB). One place to look,
+  migrate, audit. Two stores for the same fact = drift.
+- Ephemeral op state (session ids, lease holders, tokens) = nullable columns on
+  the existing row, so one row tells the full story — not a side store with a TTL.
+- Cache/broker (e.g. Redis) is transient, never the source of truth. Crash + wipe
+  → rebuild from the SoT.
+- In-memory holds only non-serializable handles (task objects, file descriptors);
+  a restart drops them by design.
+- Data-shape classes stay shape-only. Business operations (state transitions,
+  rules, side effects) live in modules, not as methods on the table class.
+
+## Failure handling
+
+Two tiers; path criticality decides the response.
+
+- **Critical paths** (money, identity — payments, orders, login/session, account
+  writes): fail loud. Raise and surface. No silent retry, no fallback. A hidden
+  failure here compounds and costs trust.
+- **Non-critical paths** (background pipelines — sync, reindex, mirrors,
+  notifications): bounded retry + backoff (configured N attempts + max delay).
+  Retries exhausted → log + alarm, exit the task. No infinite loop, no zombie
+  process. A state machine on a row tracks attempts + last error; a reconciliation
+  job picks up dead work.
+
+## External service clients
+
+Each external service gets its own client. The app calls the client; the client
+calls the API. The app never imports a vendor SDK directly.
+
+- One client per vendor (`clients/<vendor>/`). It owns transport, auth,
+  retry/timeout, response→typed mapping, and log redaction.
+- The client returns your own types; vendor SDK objects never escape it.
+- Tests mock the client interface, not the SDK. Swapping a vendor = rewriting one
+  client file, callers untouched.
+
+## Migrations + deploy safety
+
+Default = forward-compatible / zero-downtime: old code keeps working as new code
+rolls out (add nullable column, add index, add table, add enum value).
+
+Requires a window + plan + explicit approval: rename, drop, `NOT NULL` on a
+populated column, type change, FK on a large table. Every migration carries a
+safety note (zero-downtime, or requires-window + reason + rollback procedure).
+
+## Testing
+
+Pyramid, with critical paths always covered.
+
+- **Unit** — fast, pure logic + branching, local feedback.
+- **Integration** — real datastore/dependencies at module boundaries.
+- **Critical-path e2e** — mandatory for money/identity flows, no mocks on the
+  critical hops.
+- Tests verify behavior from the user's perspective. Asserting internal call
+  counts / private methods is banned.
+
+## Logging + sensitive data
+
+Structured logger from day one. Tiered redaction.
+
+- Plain typed fields for correlation (ids, status, attempt, trace id).
+- Redact by default: raw payloads, request/response bodies, prompts, free-form
+  blobs. Hash for correlation when needed; an explicit grep-able flag to override.
+- Every decision branch and error path logs enough context to reproduce.
+- No PII in URLs (phones/emails as query params) — banned.
+
+## Tech debt + refactoring
+
+- Refactor for taste = no. Refactor when a boundary breaks (a file no longer maps
+  to one concern, or a feature needs touching N unrelated files) = yes, as its own
+  scoped task surfaced to the human.
+- Debt found during normal work → a `docs/tech_debt/active/` item (location +
+  smell + suggested fix). No silent fix in an unrelated change.
+- "Good enough for MVP" / "not my responsibility" is not a reason to drop error
+  handling, edge cases, or validation the spec implies. A deliberate cut is a
+  logged tech_debt item with a trigger and the owner's sign-off, never silent.
+
+## Operational baseline
+
+Ships with the initial implementation, not as a follow-up.
+
+- Tests per the pyramid; critical paths covered.
+- Structured logs at decision branches + errors, with redaction.
+- Error handling + rollback on every DB / external call — a failure leaves no
+  half-write.
+- Type checker + linter pass at commit (pre-commit owns this).
+- No fake-done: no `TODO` / `pass` / `NotImplementedError` / hardcoded happy-path
+  / mock-as-real shipped as complete.
+
+## Dependencies
+
+- Latest compatible versions; avoid stale pins. Commit the lockfile.
+- Pre-commit owns format/lint — skip manual runs.
+- A new dependency = ask first. Each is a long-term commitment; prefer the stdlib
+  or an already-present library for what a few lines can do.
+
+## Project-specific
+
+<Rules unique to this project as they emerge — a framework idiom to follow, a lane
+discipline (e.g. which DB connection runtime traffic uses), a library the owner
+does or doesn't want. Keep each concrete and, where possible, review-enforceable
+with a pointer to the requirement or decision it maps to.>
