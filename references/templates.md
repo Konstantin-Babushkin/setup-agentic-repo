@@ -1,14 +1,8 @@
 # Document skeletons
 
-Seed these from gsd's `.planning/PROJECT.md` and the codebase, then write into the
-target repo. Starting shapes, not blank forms. No answer yet → write `OPEN:` and
-the question, not a guess.
+Seed from gsd's `.planning/PROJECT.md` + codebase, write into target repo. Starting shapes, not blank forms. No answer yet → write `OPEN:` + question, not guess.
 
-Requirements split: gsd owns per-phase discovery and the roadmap in `.planning/`.
-`docs/requirements/` holds the *durable global* requirements that outlive a phase —
-functional, NFR, errors, security. At setup it's just a `README.md` naming what
-goes there; it fills as stable requirements emerge, it is not fabricated up front.
-`docs/guides/` starts empty too — add a how-to when there's a real one to write.
+Requirements split: gsd owns per-phase discovery + roadmap in `.planning/`. `docs/requirements/` holds *durable global* requirements outliving phase — functional, NFR, errors, security. At setup just `README.md` naming what goes there; fills as stable requirements emerge, not fabricated up front. `docs/guides/` starts empty too — add how-to when real one exists.
 
 ---
 
@@ -38,10 +32,7 @@ See decision_log.md for why.
 
 ## docs/architecture/<subsystem>/
 
-A subsystem is whatever the repo is built from — a frontend feature area, a mobile
-module, an API service, a data pipeline, a CLI tool. Start as a single
-`<subsystem>.md`; promote to a directory when one file stops holding it. Don't
-create these up front — add a subsystem's docs when the subsystem exists.
+Subsystem = whatever repo built from — frontend feature area, mobile module, API service, data pipeline, CLI tool. Start as single `<subsystem>.md`; promote to directory when one file stops holding it. Don't create up front — add subsystem's docs when subsystem exists.
 
 ```
 architecture/<subsystem>/
@@ -52,7 +43,7 @@ architecture/<subsystem>/
 └── tests.md                 what's covered, at which tier, and how to run it
 ```
 
-Each file, starting shape (write `OPEN:` where unknown, not a guess):
+Each file, starting shape (write `OPEN:` where unknown, not guess):
 
 ```markdown
 # <subsystem> — strategy
@@ -107,10 +98,7 @@ logged decision; to change one, add a new entry that supersedes it.
 
 ## Capture system: ideas + tech_debt
 
-Two parallel dirs, same shape. One file per item, `YYYY-MM-DD-short-slug.md`.
-Start flat (`active/` + `resolved/`); when a dir grows past ~15 items, split
-`active/` into theme subdirs (this is the monorepo's mature layout — point there
-for an example). Resolved items stay for the audit trail, never deleted.
+Two parallel dirs, same shape. One file per item, `YYYY-MM-DD-short-slug.md`. Start flat (`active/` + `resolved/`); dir grows past ~15 items → split `active/` into theme subdirs (monorepo's mature layout — point there for example). Resolved items stay for audit trail, never deleted.
 
 ```
 docs/
@@ -172,7 +160,7 @@ Smallest useful follow-up action, or "revisit when <trigger>".
 
 ### docs/ideas/INDEX.md + docs/ideas/TEMPLATE.md
 
-Same shape, lighter — ideas have no severity and no resolved/ lifecycle:
+Same shape, lighter — ideas: no severity, no resolved/ lifecycle:
 
 ```markdown
 # Ideas

@@ -1,8 +1,8 @@
 # setup-agentic-repo
 
-A Claude Code / Codex skill that takes a non-technical founder from a fuzzy idea
-(or an existing codebase) to a repository set up for **agentic engineering**:
-the AI implements, but inside clear intent, durable context, and automatic
+Claude Code / Codex skill. Takes non-technical founder from fuzzy idea
+(or existing codebase) to repo set up for **agentic engineering**:
+AI implements, but inside clear intent, durable context, automatic
 verification — not vibe coding.
 
 ## What it sets up
@@ -16,26 +16,26 @@ verification — not vibe coding.
 [ gsd: discuss + plan ]  idea -> spec -> roadmap, on top of the infra above
 ```
 
-Greenfield and brownfield both supported. Infra is laid first; the spec and
-roadmap are handed to the gsd skills (gsd owns the discussion).
+Greenfield + brownfield both supported. Infra laid first; spec + roadmap
+handed to gsd skills (gsd owns discussion).
 
 ## Install
 
-Drop the folder into your skills directory:
+Drop folder into skills directory:
 
 - Claude Code: `~/.claude/skills/setup-agentic-repo/`
 - Codex: per its skill-install path (manifest at `agents/openai.yaml`).
 
-Then trigger it: "set up this repo for AI agents" / "make my project
-agent-ready", or just describe the idea.
+Trigger: "set up this repo for AI agents" / "make my project
+agent-ready", or just describe idea.
 
 ## Layout
 
-- `SKILL.md` — the skill spec + flow.
+- `SKILL.md` — skill spec + flow.
 - `references/` — context-engineering primer, CLI setup, doc templates, worktree workflow.
 - `templates/` — `AGENTS.md`, `CODING_VALUES.md`, `HOW_TO_DEVELOP.md`, project-skills
-  README, system-prompt override, and the harness.
+  README, system-prompt override, harness.
 
-The infra is wired by hand from the templates, adapted to the chosen stack — there
-is no bootstrap script. Greenfield picks the stack via a short product interview
+Infra wired by hand from templates, adapted to chosen stack — no
+bootstrap script. Greenfield picks stack via short product interview
 (SKILL.md "Choosing the stack"); brownfield detects it.
