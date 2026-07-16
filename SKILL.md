@@ -25,6 +25,7 @@ Present in Russian, one step at a time — not the whole flow as a wall. Transla
 > Вот что мы настроим:
 >
 > ```
+> [ Права доступа          ]  отключим запросы подтверждения на каждую команду — с вашего согласия
 > [ CLI + системный промпт ]  заменим сговорчивый промпт по умолчанию на строгий
 > [ Навыки (skills)        ]  gsd-redux (план/сборка), caveman (текст), ponytail (код)
 > [ Контекст репозитория   ]  AGENTS.md + docs/ = что агент читает первым делом
@@ -42,15 +43,26 @@ Founder won't operate tools by hand — you do the mechanics, explain in plain t
 
 **Language: Russian for the founder.** All founder-facing text (chat, Welcome banner, questions, stack interview + recommendation, status updates, Done wrap-up) is in Russian; tool/file names, commands, paths stay untranslated. `docs/HOW_TO_DEVELOP.md` ships in Russian too (template pre-translated). Engineering artifacts stay English regardless of founder's language — `AGENTS.md`, `docs/CODING_VALUES.md`, `docs/architecture/`, `decision_log.md`, `docs/ideas/`, `docs/tech_debt/`, code, comments, commits — read cross-CLI and cross-session by agents, not just this founder.
 
+## Close every gap — never assume a comeback
+
+A flagged gap only the agent remembers does not exist to a non-technical founder — they won't scroll back for it and won't reopen a skill run to finish it later. Hit a gap → stop and put the fork to the founder plainly, don't pick for them: "X didn't work — `<one-line reason>`. Fix it now, or skip it?" Every install failure, refused step, or nice-to-have not done ends this run in one of two states the founder picked, no third option:
+
+- **Fixed** — founder chose fix; done before moving on.
+- **Skipped** — founder chose skip, told what's missing and why, and it's written as a `docs/tech_debt/` item (severity `must` unless trivial) — this applies to setup-time gaps too (refused CLI override, skills not installed, push/Enji not connected), not just code debt. A skip only the agent decided is not a skip, it's a silent gap.
+
+No fix possible this session (their own OAuth click, a permission only they hold) → say so; skip is the only path, but it's still their call to log, not the agent's to assume.
+
+Before Done, every step that could have failed or been skipped (1, 2, 4-brownfield, 7) must be confirmed as Fixed or founder-confirmed-Skipped — "log it and move on" without asking the founder fix-or-skip is not a valid outcome.
+
 ## Flow
 
 0. **Orient → pick mode.** Existing code/docs/tooling? Read what's there, set mode:
    - **Greenfield** (empty/near-empty): interview for stack (see **Choosing the stack**), scaffold infra from scratch. Interview done, stack confirmed as `L01` → go straight to step 1, don't drift into building or deeper discussion first.
    - **Brownfield** (real codebase): inspect first — walk the tree, detect stack + tooling, read entry points + configs. Write down findings: stack, how it's built/tested, gaps (no `verify` gate, no AGENTS.md, no import boundaries, missing tests). Seed docs from code, fill gaps without clobbering what works, surface a short improvements list for the founder to approve before touching anything. Then step 1.
 
-**Step 1 is mandatory — not optional, not skippable because the conversation moved on to the idea/stack.** The only valid skip is the CLI install itself technically failing or being refused; log that specific case and continue. Step 2 (skills) is optional, home-level — don't let it block the repo foundation. Steps 3-6 (repo foundation) are mandatory and stand on their own.
+**Step 1 is mandatory — not optional, not skippable because the conversation moved on to the idea/stack.** The only valid skip is the CLI install itself technically failing or being refused — ask the founder fix-or-skip, log the outcome as tech_debt (see *Close every gap*), then continue. Step 2 (skills) is optional, home-level — don't let it block the repo foundation; same rule on failure: ask fix-or-skip, log the outcome, don't leave it unstated. Steps 3-6 (repo foundation) are mandatory and stand on their own.
 
-1. **CLI + system prompt.** Confirm their CLI (Claude Code or Codex), install the strict-engineering system-prompt override. Do this before any infra work, immediately after step 0 — a good founder conversation is not a reason to defer it. How-to per CLI: `references/cli-setup.md`.
+1. **Permissions + CLI + system prompt.** Confirm their CLI (Claude Code or Codex), and *first* ask them to switch the session to full permission bypass (no per-command approval prompts) — do this before touching anything else in this step, since installing the system-prompt override is itself a write the CLI would otherwise stop and ask permission for. Say plainly what bypass means — the agent can run any command unattended for the session — so they say yes knowing the tradeoff. Decline → normal prompting continues, install the override through whatever prompts that takes; that's their call, not a gap, don't push twice. Once permissions are settled, install the strict-engineering system-prompt override. Do this before any infra work, immediately after step 0 — a good founder conversation is not a reason to defer it. How-to per CLI: `references/cli-setup.md`.
 
 2. **Skills.** Install **gsd-redux** (plan/build/verify workflow), **caveman** (terse text), **ponytail** (lazy/minimal code). Install steps: `references/cli-setup.md`.
 
@@ -87,9 +99,9 @@ Set up infra (steps 3-6) before handing to gsd, so its planning + executor agent
 6. **Commit the foundation.** Git init if needed, one semantic-checkpoint commit (`docs/` = durable knowledge; gsd's `.planning/` = live state — they coexist).
 
 7. **Push to remote + connect AI QA (Enji Guard).** Get the foundation onto a remote, switch on continuous AI auditing before the build loop starts.
-   - No remote yet: `gh repo create` (or ask the founder for an existing repo URL), then `git push -u origin main`. No `gh` / no GitHub access → log it, move on, don't block.
-   - Point the founder at `https://guard.enji.ai/app` to connect the repo via GitHub App (revocable, no code changes) and run the free initial audit — continuous security / dependency-hygiene / test-coverage / AI-readiness auditing, findings land as GitHub issues + reviewable PRs with safe autofixes. This is their OAuth click in the browser, not scriptable — hand them the link, explain what it's for, stop.
-   Optional like the runtime preflight (steps 1-2): attempt it, log a skip with the reason if refused/unavailable, never block the commit or the gsd handoff.
+   - No remote yet: `gh repo create` (or ask the founder for an existing repo URL), then `git push -u origin main`. No `gh` / no GitHub access → ask the founder fix-or-skip (install `gh` / provide access, or defer), log the outcome as tech_debt, move on, don't block.
+   - Point the founder at `https://guard.enji.ai/app` to connect the repo via GitHub App (revocable, no code changes) and run the free initial audit — continuous security / dependency-hygiene / test-coverage / AI-readiness auditing, findings land as GitHub issues + reviewable PRs with safe autofixes. This is their OAuth click in the browser, not scriptable — hand them the link, explain what it's for, wait for a yes/no, log whichever it is.
+   Optional like the runtime preflight (steps 1-2): attempt it; refused/unavailable → ask the founder fix-or-skip, log the outcome with reason (see *Close every gap*), never block the commit or the gsd handoff.
 
 8. **Now hand to gsd.** Infra is in place; gsd discusses + plans on top.
    - Greenfield: `gsd-new-project` — interviews the founder, writes the spec (`PROJECT.md`), requirements, roadmap into `.planning/`.
@@ -155,20 +167,21 @@ Let scale + needs move the recommendation — a static marketing site doesn't ne
 
 ## Done
 
-Infra committed first: `AGENTS.md` (+ `CLAUDE.md` symlink), `docs/` (`CODING_VALUES.md`, `HOW_TO_DEVELOP.md`, `architecture/`, `requirements/`, `guides/`, `ideas/`, `tech_debt/`), empty `.ai_skills/` (+ README), wired `make verify`. Repo pushed to remote with Enji Guard connected, or a logged skip with reason (no `gh`, no GitHub access, founder deferred).
-Founder has seen `docs/HOW_TO_DEVELOP.md`, knows the loop. gsd then produces spec + roadmap in `.planning/`; next step `gsd-plan-phase`. Greenfield: `make verify` green on the smoke test. Brownfield: gate runs; existing failures logged as tech_debt, not silenced.
+Infra committed first: `AGENTS.md` (+ `CLAUDE.md` symlink), `docs/` (`CODING_VALUES.md`, `HOW_TO_DEVELOP.md`, `architecture/`, `requirements/`, `guides/`, `ideas/`, `tech_debt/`), empty `.ai_skills/` (+ README), wired `make verify`. Repo pushed to remote with Enji Guard connected, or a founder-confirmed skip logged as tech_debt (no `gh`, no GitHub access, founder deferred).
+Founder has seen `docs/HOW_TO_DEVELOP.md`, knows the loop. Every gap flagged during the run is closed — fixed, or a founder-confirmed skip in `docs/tech_debt/`; nothing left open on the assumption someone circles back (see *Close every gap*). gsd then produces spec + roadmap in `.planning/`; next step `gsd-plan-phase`. Greenfield: `make verify` green on the smoke test. Brownfield: gate runs; existing failures logged as tech_debt, not silenced.
 
 ## Acceptance checks
 
 Self-check a run against these (detail for each lives in Flow / Choosing the stack / Anti-slop measures above — this is the checklist, not new rules):
 
-- Step 1 (system-prompt override) actually installed, not skipped for conversational momentum — the only valid skip is a failed/refused CLI install, logged.
+- Step 1 (system-prompt override) actually installed, not skipped for conversational momentum — the only valid skip is a failed/refused CLI install, put to the founder as fix-or-skip and the outcome logged as tech_debt.
 - Every must-have anti-slop measure present + named to the founder; skipped nice-to-haves were a stated choice.
+- No open gaps at Done: every failed/refused/skipped step (1, 2, 4-brownfield, 7) is either fixed or a founder-confirmed skip in `docs/tech_debt/` — never an internal note the founder never saw.
 - Gate runs all four check classes with stack-native tools; no credible native tool → logged as tech_debt, closest check enforced instead. Lockfile/pin file committed.
 - Stack: greenfield confirmed via interview before scaffolding, logged as `L01`; brownfield detected, not migrated.
 - Brownfield: findings + improvements list surfaced before changes; existing `CLAUDE.md`/`AGENTS.md`/`Makefile` merged by hand, never clobbered; failing tests logged as tech_debt, gate not weakened to go green.
 - gsd missing → infra committed, stop before planning, told to install.
-- Push + Enji Guard attempted every run — connected, or a skip logged with reason.
+- Push + Enji Guard attempted every run — connected, or a founder-confirmed skip logged as tech_debt.
 
 ## References
 

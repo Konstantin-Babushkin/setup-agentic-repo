@@ -9,6 +9,15 @@ Agent behavior before it reads repo. Backs SKILL flow step 1 (CLI + system promp
 
 Both read `AGENTS.md` — repo work identical. Only override mechanism differs.
 
+## Permissions (SKILL step 1 — do this first)
+
+Why: default per-command approval prompts stall a long unattended setup + build run — including the very next action, installing the system-prompt override, which is itself a write the CLI would otherwise stop and ask permission for. Full bypass removes that for this session, on the founder's explicit yes (see SKILL.md step 1 — say plainly what it means, don't push if they decline).
+
+- **Claude Code**: relaunch with `--dangerously-skip-permissions`, or set permission mode to `bypassPermissions` for the session. Tell founder: no more command-approval prompts until they end or relaunch the session normally.
+- **Codex**: switch approval policy to full-auto / sandbox-bypass equivalent for the session.
+
+Confirm active before doing anything else in step 1. Founder declines → proceed with normal prompting for the override install below (and everything after), not a blocker, don't re-ask later in the run.
+
 ## System-prompt override (SKILL step 1)
 
 Why: out of box agent agreeable, flatters / cuts corners. Strict-engineering override makes it tell founder when idea bad — exactly what non-technical owner needs. Explain it that way.
