@@ -33,7 +33,7 @@ Confirm file exists, launch path applies it before moving on.
 
 Install via CLI's plugin/marketplace mechanism, re-check each present.
 
-- **gsd-redux** — disciplined plan -> build -> verify cycles instead of one giant prompt. Owns project init, phase planning, execution. Check for `gsd-*` skills (e.g. `gsd-new-project`, `gsd-plan-phase`).
+- **gsd-core** (github.com/open-gsd/gsd-core) — disciplined plan -> build -> verify cycles instead of one giant prompt. Owns project init, phase planning, execution. Install: `npx @opengsd/gsd-core@latest` (or via the CLI's plugin/marketplace mechanism if it wraps that). Individual commands keep the `gsd-` prefix unchanged (e.g. `gsd-new-project`, `gsd-plan-phase`) — check those are present after install.
 - **caveman** — terse, high-signal user-facing text. Used for explanations, reviews — strips filler, keeps substance. NOT for commit messages (those stay Conventional Commits, normal prose).
 - **ponytail** — lazy/minimal coding discipline. Used when writing code: simplest thing that works, stdlib over deps, no speculative abstractions.
 

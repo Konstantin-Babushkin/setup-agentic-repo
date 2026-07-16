@@ -27,7 +27,7 @@ Present in Russian, one step at a time — not the whole flow as a wall. Transla
 > ```
 > [ Права доступа          ]  отключим запросы подтверждения на каждую команду — с вашего согласия
 > [ CLI + системный промпт ]  заменим сговорчивый промпт по умолчанию на строгий
-> [ Навыки (skills)        ]  gsd-redux (план/сборка), caveman (текст), ponytail (код)
+> [ Навыки (skills)        ]  gsd-core (план/сборка), caveman (текст), ponytail (код)
 > [ Контекст репозитория   ]  AGENTS.md + docs/ = что агент читает первым делом
 > [ Харнесс                ]  lint + типы + тесты + границы импортов = слоп не пройдёт
 > [ Push + AI QA           ]  push в GitHub, подключим Enji Guard для непрерывного аудита
@@ -64,7 +64,7 @@ Before Done, every step that could have failed or been skipped (1, 2, 4-brownfie
 
 1. **Permissions + CLI + system prompt.** Confirm their CLI (Claude Code or Codex), and *first* ask them to switch the session to full permission bypass (no per-command approval prompts) — do this before touching anything else in this step, since installing the system-prompt override is itself a write the CLI would otherwise stop and ask permission for. Say plainly what bypass means — the agent can run any command unattended for the session — so they say yes knowing the tradeoff. Decline → normal prompting continues, install the override through whatever prompts that takes; that's their call, not a gap, don't push twice. Once permissions are settled, install the strict-engineering system-prompt override. Do this before any infra work, immediately after step 0 — a good founder conversation is not a reason to defer it. How-to per CLI: `references/cli-setup.md`.
 
-2. **Skills.** Install **gsd-redux** (plan/build/verify workflow), **caveman** (terse text), **ponytail** (lazy/minimal code). Install steps: `references/cli-setup.md`.
+2. **Skills.** Install **gsd-core** (plan/build/verify workflow, github.com/open-gsd/gsd-core), **caveman** (terse text), **ponytail** (lazy/minimal code). Install steps: `references/cli-setup.md`.
 
 Set up infra (steps 3-6) before handing to gsd, so its planning + executor agents inherit the house rules and run inside the verification gate. No bootstrap script — adapt templates in `templates/` by hand: fill slots, never overwrite a file that already exists. Templates are a Python/Node reference shape, not a default to install blind.
 

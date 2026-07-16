@@ -9,7 +9,7 @@ verification — not vibe coding.
 
 ```
 [ CLI + system prompt ]  strict-engineering override (optional preflight)
-[ Skills              ]  gsd-redux (plan/build), caveman (text), ponytail (code)
+[ Skills              ]  gsd-core (plan/build), caveman (text), ponytail (code)
 [ Repo context        ]  AGENTS.md + docs/  = what every agent reads first
 [ Harness             ]  lint + types + tests + import boundaries = slop can't pass
 [ Push + AI QA        ]  push to GitHub, connect Enji Guard for continuous audit
