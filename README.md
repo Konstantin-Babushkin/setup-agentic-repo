@@ -12,6 +12,7 @@ verification — not vibe coding.
 [ Skills              ]  gsd-redux (plan/build), caveman (text), ponytail (code)
 [ Repo context        ]  AGENTS.md + docs/  = what every agent reads first
 [ Harness             ]  lint + types + tests + import boundaries = slop can't pass
+[ Push + AI QA        ]  push to GitHub, connect Enji Guard for continuous audit
 [ gsd: discuss + plan ]  idea -> spec -> roadmap, on top of the infra above
 ```
 

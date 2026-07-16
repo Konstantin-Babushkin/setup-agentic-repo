@@ -1,68 +1,70 @@
-# How to develop {{PROJECT_NAME}} (human guide)
+# Как разрабатывать {{PROJECT_NAME}} (гид для человека)
 
-You don't write code. You direct AI agents through a disciplined loop and judge
-the results. This is that loop and your job at each step.
+Ты не пишешь код. Ты направляешь AI-агентов по дисциплинированному циклу и
+оцениваешь результат. Вот этот цикл и твоя роль на каждом шаге.
 
 ```
-discuss -> plan -> review + correct -> execute (worktree) -> review (other CLI) -> land -> verify
-  you talk   AI drafts   you approve       AI builds, isolated     cross-check          merge   you UAT
+обсуждение -> план -> проверка + правки -> выполнение (worktree) -> ревью (другой CLI) -> влить -> приёмка
+   ты говоришь   AI пишет план   ты одобряешь        AI строит, изолированно      кросс-проверка       merge      ты проверяешь
 ```
 
-One trip through the loop = one phase = one clean commit. Keep loops small.
+Один проход цикла = одна фаза = один чистый коммит. Держи циклы маленькими.
 
-## 1. Discuss
-`gsd-discuss-phase` (first time: `gsd-new-project`). Talk through what you want
-next, in plain language. Your job: be clear about the goal and the constraints.
+## 1. Обсуждение
+`gsd-discuss-phase` (в первый раз: `gsd-new-project`). Обсуди, что нужно
+дальше, простыми словами. Твоя роль: чётко сформулировать цель и ограничения.
 
-## 2. Plan
-`gsd-plan-phase`. The agent writes a step-by-step plan. Your job: wait for it.
+## 2. План
+`gsd-plan-phase`. Агент пишет пошаговый план. Твоя роль: дождаться.
 
-## 3. Review + correct the plan
+## 3. Проверка и правка плана
 `gsd-review --phase N`
-**Don't approve a plan you don't understand — ask until you do.** This is the cheapest
-place to catch a mistake; fixing it here costs minutes, fixing it after the build
-costs hours.
+**Не одобряй план, который не понимаешь — спрашивай, пока не поймёшь.** Это
+самое дешёвое место поймать ошибку; исправить её здесь стоит минут, после
+сборки — часов.
 
-## 4. Execute in a worktree
-`make worktree.new SLUG=<slug>`, then `gsd-execute-phase`. The agent builds in an
-isolated copy of the repo (a "git worktree") so your main copy stays clean and
-parallel work can't collide. It must keep `make verify` green as it goes.
+## 4. Выполнение в worktree
+`make worktree.new SLUG=<slug>`, затем `gsd-execute-phase`. Агент строит в
+изолированной копии репозитория ("git worktree"), поэтому основная копия
+остаётся чистой, а параллельная работа не конфликтует. Должен держать
+`make verify` зелёным по ходу работы.
 
-## 5. Code review by the *other* CLI
-Have the other agent review the diff: Claude built it → **Codex reviews**; Codex
-built it → **Claude reviews**. A second model catches what the author missed and
-won't rubber-stamp its own work. Feed real findings back as fixes; re-run
-`make verify`.
+## 5. Ревью кода *другим* CLI
+Пусть другой агент проверит диф: строил Claude → **ревьюит Codex**; строил
+Codex → **ревьюит Claude**. Вторая модель ловит то, что упустил автор, и не
+станет штамповать одобрение своей же работе. Реальные замечания — в
+исправления, затем снова `make verify`.
 
-## 6. Land the worktree
-Once review passes: `make worktree.land SLUG=<slug> MSG="<commit message>"`. It
-re-runs `make verify` inside the worktree, lands one clean squash commit, and
-deletes the worktree + branch. It refuses if anything is dirty or unverified —
-that refusal is the point. Never hand-merge work that skipped review + verify.
+## 6. Влить worktree
+После прохождения ревью: `make worktree.land SLUG=<slug> MSG="<commit message>"`.
+Команда повторно прогоняет `make verify` внутри worktree, вливает один чистый
+squash-коммит и удаляет worktree и ветку. Откажется, если что-то не
+закоммичено или не проверено — в этом и смысл. Никогда не вливай руками
+работу, которая пропустила ревью и verify.
 
-## 7. Verify the work
-`gsd-verify-work`. Walk through the feature as a real user would and confirm it
-does what you asked. Final gate. If it's wrong, go back to discuss/plan — don't
-patch blindly.
+## 7. Приёмка работы
+`gsd-verify-work`. Пройди фичу как реальный пользователь и убедись, что она
+делает то, что просили. Финальный шлюз. Если что-то не так — назад к
+обсуждению/плану, не патчи вслепую.
 
-## Run loops in parallel
-The loop is single-threaded by default, but the worktree in step 4 means
-independent work doesn't have to wait in line. Look for tasks that don't touch the
-same code or depend on each other — a new feature here, a bug fix there, a docs
-pass — and push each into its own loop at once. Each runs in its own worktree, so
-they can't collide, and you review/land them as they finish.
+## Параллельные циклы
+По умолчанию цикл однопоточный, но worktree из шага 4 значит, что независимая
+работа не должна стоять в очереди. Ищи задачи, которые не трогают один и тот
+же код и не зависят друг от друга — новая фича тут, багфикс там, проход по
+докам — и запускай каждую в свой цикл сразу. Каждая работает в своём
+worktree, конфликтовать не могут — ревью и вливание идут по мере готовности.
 
-Your job shifts from "wait for one thing" to **keeping the pipeline full**: while
-one phase is executing, you're discussing or reviewing the plan for the next. Be
-honest about dependencies though — two loops editing the same module will fight at
-land time. When unsure, ask the agent whether two tasks are independent before
-starting both.
+Твоя роль смещается с "жду одну вещь" на **держать конвейер заполненным**:
+пока одна фаза выполняется, ты обсуждаешь или ревьюишь план следующей. Но
+честно оценивай зависимости: два цикла, редактирующие один модуль, столкнутся
+при вливании. Если не уверен, что две задачи независимы — спроси агента,
+прежде чем запускать обе.
 
-## Rules of thumb
-- Hunt for parallelizable work and keep several independent loops in flight.
-- Never approve a plan or a result you don't understand. Ask.
-- `make verify` and the other-CLI review are your safety net — don't skip them to
-  go faster. Skipping is how slop ships.
-- Small loops beat giant ones. One phase at a time.
-- Found a good idea or a shortcut you took? File it (`docs/ideas/` /
-  `docs/tech_debt/`) so it isn't lost.
+## Практические правила
+- Ищи параллелизируемую работу, держи несколько независимых циклов в работе.
+- Никогда не одобряй план или результат, который не понимаешь. Спрашивай.
+- `make verify` и ревью другим CLI — твоя страховка, не пропускай их ради
+  скорости. Пропуск — это то, как в проект проникает слоп.
+- Маленькие циклы лучше огромных. Одна фаза за раз.
+- Нашёл хорошую идею или срезал угол? Зафиксируй (`docs/ideas/` /
+  `docs/tech_debt/`), чтобы это не потерялось.
