@@ -1,4 +1,4 @@
-# setup-agentic-repo
+# agent-scaffold
 
 Claude Code / Codex skill. Takes non-technical founder from fuzzy idea
 (or existing codebase) to repo set up for **agentic engineering**:
@@ -23,7 +23,7 @@ handed to gsd skills (gsd owns discussion).
 
 Drop folder into skills directory:
 
-- Claude Code: `~/.claude/skills/setup-agentic-repo/`
+- Claude Code: `~/.claude/skills/agent-scaffold/`
 - Codex: per its skill-install path (manifest at `agents/openai.yaml`).
 
 Trigger: "set up this repo for AI agents" / "make my project

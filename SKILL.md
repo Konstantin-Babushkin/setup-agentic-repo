@@ -1,5 +1,5 @@
 ---
-name: setup-agentic-repo
+name: agent-scaffold
 description: >-
   Guided setup that turns a fuzzy product idea into an AI-agent-ready repository
   for a non-technical founder — and equally sets up agentic infrastructure on an
@@ -14,7 +14,7 @@ description: >-
   AGENTS.md, a docs skeleton, and a test/lint/type/import harness — then hands the
   spec and roadmap off to the gsd planning skills (gsd does the discussion).
 ---
-# Setup Agentic Repo
+# Agent Scaffold
 
 Idea → repo ready for *agentic engineering*: agent works inside clear intent, durable context, automatic verification. Frame: **context engineering** — read `references/context-engineering.md` once, explain to the founder in their words.
 
