@@ -21,10 +21,24 @@ handed to gsd skills (gsd owns discussion).
 
 ## Install
 
-Drop folder into skills directory:
+One-shot, installs for Claude Code, Codex, Cursor:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/maddevsio/agent-scaffold/main/install.sh | bash
+```
+
+Claude Code plugin marketplace:
+
+```sh
+/plugin marketplace add maddevsio/agent-scaffold
+/plugin install agent-scaffold@agent-scaffold
+```
+
+Manual: drop folder into skills directory:
 
 - Claude Code: `~/.claude/skills/agent-scaffold/`
-- Codex: per its skill-install path (manifest at `agents/openai.yaml`).
+- Codex: `~/.codex/skills/agent-scaffold/` (manifest at `agents/openai.yaml`).
+- Cursor: `~/.cursor/skills/agent-scaffold/` or `.cursor/rules/` (project-local).
 
 Trigger: "set up this repo for AI agents" / "make my project
 agent-ready", or just describe idea.

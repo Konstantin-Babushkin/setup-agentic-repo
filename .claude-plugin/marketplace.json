@@ -1,0 +1,13 @@
+{
+  "name": "agent-scaffold",
+  "description": "Turn an idea or existing repo into agent-ready infra (AGENTS.md, docs, harness), then hand off to gsd.",
+  "owner": { "name": "Mad Devs", "url": "https://github.com/maddevsio" },
+  "plugins": [
+    {
+      "name": "agent-scaffold",
+      "source": "./",
+      "description": "Turn an idea or existing repo into agent-ready infra (AGENTS.md, docs, harness), then hand off to gsd.",
+      "skills": ["./"]
+    }
+  ]
+}

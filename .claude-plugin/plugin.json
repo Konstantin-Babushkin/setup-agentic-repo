@@ -1,0 +1,6 @@
+{
+  "name": "agent-scaffold",
+  "version": "1.0.0",
+  "description": "Turn an idea or existing repo into agent-ready infra (AGENTS.md, docs, harness), then hand off to gsd.",
+  "author": { "name": "Mad Devs", "url": "https://github.com/maddevsio" }
+}
